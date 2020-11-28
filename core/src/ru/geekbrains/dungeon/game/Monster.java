@@ -2,7 +2,6 @@ package ru.geekbrains.dungeon.game;
 
 import com.badlogic.gdx.math.MathUtils;
 import ru.geekbrains.dungeon.helpers.Assets;
-import ru.geekbrains.dungeon.game.GameController;
 import ru.geekbrains.dungeon.helpers.Utils;
 
 public class Monster extends Unit {
@@ -14,6 +13,7 @@ public class Monster extends Unit {
         this.texture = Assets.getInstance().getAtlas().findRegion("monster");
         this.textureHp = Assets.getInstance().getAtlas().findRegion("hp");
         this.hp = -1;
+        this.type = type.MONSTER;
     }
 
     public Monster activate(int cellX, int cellY) {
@@ -29,11 +29,11 @@ public class Monster extends Unit {
 
     public void update(float dt) {
         super.update(dt);
-        if (canIMakeAction()) {
+        if (canIMove() || canIAttack()) {
             if (isStayStill()) {
                 aiBrainsImplseTime += dt;
             }
-            if (aiBrainsImplseTime > 0.4f) {
+            if (aiBrainsImplseTime > 0.4f || !isInVisibleCell()) {
                 aiBrainsImplseTime = 0.0f;
                 think(dt);
             }
@@ -46,7 +46,7 @@ public class Monster extends Unit {
             return;
         }
         if (amIBlocked()) {
-            turns = 0;
+            stepTurns = 0;
             return;
         }
         if (Utils.getCellsIntDistance(cellX, cellY, target.getCellX(), target.getCellY()) < 5) {
