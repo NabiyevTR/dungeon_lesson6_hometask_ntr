@@ -22,6 +22,24 @@ public class UnitController {
         return currentUnit == unit;
     }
 
+    public List<Unit> getActiveUnits() {
+        List<Unit> activeUnits = new ArrayList<>();
+        for (int i = 0; i < allUnits.size(); i++) {
+            if (allUnits.get(i).isActive()) activeUnits.add(allUnits.get(i));
+        }
+        return activeUnits;
+    }
+
+    public boolean areActiveUnitsInAttackRange(Unit unit) {
+        List<Unit> activeUnits = getActiveUnits();
+        for (int i = 0; i < activeUnits.size(); i++) {
+            if (unit != activeUnits.get(i) && unit.canIAttackThisTarget(activeUnits.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isCellFree(int cellX, int cellY) {
         for (int i = 0; i < allUnits.size(); i++) {
             Unit u = allUnits.get(i);
@@ -72,8 +90,9 @@ public class UnitController {
     public void update(float dt) {
         hero.update(dt);
         monsterController.update(dt);
-
-        if (!currentUnit.isActive() || currentUnit.getTurns() == 0) {
+        if (!currentUnit.isActive() ||
+                (currentUnit.getStepTurns() == 0 && currentUnit.getAttackTurns() == 0) ||
+                (currentUnit.getStepTurns() == 0 && currentUnit.getAttackTurns() > 0 && !areActiveUnitsInAttackRange(currentUnit))) {
             nextTurn();
         }
     }
@@ -84,6 +103,8 @@ public class UnitController {
         if (unitIndex <= index) {
             index--;
         }
+        // 5. * Монеты высыпаются на пол, и чтобы их забрать, надо на них наступить +
+        gc.getGameMap().setGold(unit.getCellX(), unit.getCellY(), unit.getGold());
     }
 
     public void createMonsterInRandomCell() {
