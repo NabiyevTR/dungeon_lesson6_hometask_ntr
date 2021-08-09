@@ -1,6 +1,7 @@
 package ru.geekbrains.dungeon.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import lombok.Data;
@@ -18,16 +19,27 @@ public class Hero extends Unit {
         this.hp = this.hpMax;
         this.texture = Assets.getInstance().getAtlas().findRegion("knight");
         this.textureHp = Assets.getInstance().getAtlas().findRegion("hp");
+        this.type = unitType.HERO;
+        gc.getGameMap().updateCellsVisibility();
     }
 
     public void update(float dt) {
         super.update(dt);
-        if (Gdx.input.justTouched() && canIMakeAction()) {
+
+        if (Gdx.input.justTouched()) {
+            //Сброс ходов
+            if (Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
+                gc.getUnitController().nextTurn();
+            }
             Monster m = gc.getUnitController().getMonsterController().getMonsterInCell(gc.getCursorX(), gc.getCursorY());
             if (m != null && canIAttackThisTarget(m)) {
                 attack(m);
-            } else {
+            } else if (canIMove()) {
                 goTo(gc.getCursorX(), gc.getCursorY());
+                // Передаем координаты героя в GameMap и обновляем область видимости.
+                gc.getGameMap().setCellX(gc.getCursorX());
+                gc.getGameMap().setCellY(gc.getCursorY());
+                gc.getGameMap().updateCellsVisibility();
             }
         }
     }
